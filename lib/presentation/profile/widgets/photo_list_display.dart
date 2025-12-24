@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:perform_test/core/config/feature_toggle.dart';
 import 'package:perform_test/data/model/photo.dart';
@@ -17,7 +18,15 @@ class PhotoList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appConfig = AppConfigProvider.of(context);
-    final buildStart = DateTime.now();
+    
+    // Используем Timeline для визуализации в DevTools
+    developer.Timeline.startSync('PHOTO_LIST_BUILD', arguments: {
+      'photoCount': photos.length,
+      'lazyLoad': appConfig.get(FeatureToggle.lazyLoad),
+    });
+    
+    // Используем Stopwatch для точного измерения
+    final buildStopwatch = Stopwatch()..start();
 
     Widget listContent;
     if (appConfig.get(FeatureToggle.lazyLoad)) {
@@ -41,10 +50,16 @@ class PhotoList extends StatelessWidget {
       );
     }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final duration = DateTime.now().difference(buildStart);
-      debugPrint("PhotoList built in ${duration.inMilliseconds} ms");
-    });
+    buildStopwatch.stop();
+    developer.Timeline.finishSync();
+
+    // Логируем результат после завершения build
+    // Используем микросекунды для точности, но выводим в миллисекундах
+    final buildTimeMs = buildStopwatch.elapsedMicroseconds / 1000.0;
+    debugPrint(
+      'PhotoList build time: ${buildTimeMs.toStringAsFixed(2)} ms '
+      '(photos: ${photos.length}, lazyLoad: ${appConfig.get(FeatureToggle.lazyLoad)})',
+    );
 
     return listContent;
   }
