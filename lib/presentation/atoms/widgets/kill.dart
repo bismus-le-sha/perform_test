@@ -31,11 +31,9 @@ class _KillWidgetState extends State<KillWidget> {
               await WidgetsBinding.instance.endOfFrame;
               final before = DateTime.now();
               WidgetsBinding.instance.addPostFrameCallback((_) async {
-                var execTime = await ExecTime().measureExecutionTime(() async {
-                  result = appConfig.get(FeatureToggle.optimFibonacci)
-                      ? await Calculate().optimCalculateFibonacci(fibonacciNum)
-                      : await Calculate().calculateFibonacci(fibonacciNum);
-                });
+                var execTime = await ExecTime().measureExecutionTime(
+                  () async {},
+                );
                 setState(() {
                   calculating = false;
                 });
