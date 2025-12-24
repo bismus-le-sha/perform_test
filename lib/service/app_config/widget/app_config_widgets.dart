@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:perform_test/service/app_config/app_config.dart';
+import 'package:perform_test/core/config/feature_toggle.dart';
 import 'package:perform_test/service/app_config/app_config_provider.dart';
 import 'package:perform_test/service/app_config/page/app_config_page.dart';
 
@@ -14,12 +14,14 @@ class AppConfigToggle extends StatelessWidget {
     return AnimatedBuilder(
       animation: appConfig,
       builder: (context, _) {
-        final value = AppConfig().get(feature);
+        // ИСПРАВЛЕНО: используем appConfig из контекста, а не синглтон
+        final value = appConfig.get(feature);
         return ListTile(
           title: Text(feature.name),
           trailing: Switch(
             value: value,
-            onChanged: (val) => AppConfig().set(feature, val),
+            // ИСПРАВЛЕНО: используем appConfig из контекста
+            onChanged: (val) => appConfig.set(feature, val),
           ),
         );
       },

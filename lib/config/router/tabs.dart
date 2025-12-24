@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:perform_test/data/datasource/api.dart';
-import 'package:perform_test/presentation/large_image_page.dart';
 import 'package:perform_test/presentation/profile/page/photos_feed_screen.dart';
 import 'package:perform_test/presentation/atoms/page/bloc_ui_tab.dart';
 
 class BottomTabs extends StatefulWidget {
-  const BottomTabs({super.key, required this.datasource});
-  final Datasource datasource;
+  const BottomTabs({super.key});
 
   @override
   State<BottomTabs> createState() => _BottomTabsState();
@@ -20,7 +17,7 @@ class _BottomTabsState extends State<BottomTabs> {
   void initState() {
     super.initState();
     _widgetOptions = [
-      PhotosFeedScreen(datasource: widget.datasource),
+      PhotosFeedScreen(),
       // LargeImagePage(datasource: widget.datasource),
       DummyTab(),
       BlocUITab(),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:perform_test/service/app_config/app_config.dart';
+import 'package:perform_test/core/config/feature_toggle.dart';
 import 'package:perform_test/service/app_config/app_config_provider.dart';
 import 'package:perform_test/data/datasource/calculate.dart';
 import 'package:perform_test/service/metrics_handlers/exec_time.dart';
@@ -28,19 +28,15 @@ class _KillWidgetState extends State<KillWidget> {
               setState(() {
                 calculating = true;
               });
-              await WidgetsBinding.instance.endOfFrame;
-              final before = DateTime.now();
-              WidgetsBinding.instance.addPostFrameCallback((_) async {
-                var execTime = await ExecTime().measureExecutionTime(
-                  () async {},
-                );
-                setState(() {
-                  calculating = false;
-                });
-                debugPrint(
-                  "Calculation time for fibonacci $fibonacciNum : $execTime ms",
-                );
+              await ExecTime().measureUIFreezTime(() async {
+                result = appConfig.get(FeatureToggle.optimFibonacci)
+                    ? await Calculate().optimCalculateFibonacci(fibonacciNum)
+                    : syncFibo(fibonacciNum);
               });
+              setState(() {
+                calculating = false;
+              });
+              await WidgetsBinding.instance.endOfFrame;
             },
             child: const Text(
               'KILL UI THREAD ☠️',
@@ -57,4 +53,12 @@ class _KillWidgetState extends State<KillWidget> {
       ),
     );
   }
+}
+
+int syncFibo(int fibonacciNum) {
+  int result = 0;
+  ExecTime().measureExecutionTime(() async {
+    result = await Calculate().calculateFibonacci(fibonacciNum);
+  });
+  return result;
 }

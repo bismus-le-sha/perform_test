@@ -3,16 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' as services;
 import 'package:path_provider/path_provider.dart';
+import 'package:perform_test/core/config/feature_toggle.dart';
 
-enum FeatureToggle {
-  optimFibonacci,
-  correctDataUpdate,
-  lazyLoad,
-  optimImageSize,
-  minimizeExpensiveRendering,
-  largeJsonParce,
-}
-
+/// Сервис конфигурации приложения.
+/// Управляет feature toggles для демонстрации различных подходов к оптимизации.
 class AppConfig extends ChangeNotifier {
   static final _instance = AppConfig._internal();
   final _flags = <FeatureToggle, bool>{};

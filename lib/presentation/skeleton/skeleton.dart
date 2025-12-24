@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:perform_test/core/config/feature_toggle.dart';
 import 'package:perform_test/presentation/skeleton/placeholders.dart';
 import 'package:perform_test/presentation/skeleton/shimmer.dart';
-import 'package:perform_test/service/app_config/app_config.dart';
 import 'package:perform_test/service/app_config/app_config_provider.dart';
 
 const _shimmerGradient = LinearGradient(

@@ -7,11 +7,11 @@ class ExecTime {
 
   ExecTime({Logger? logger}) : logger = logger ?? getLogger('ExecTime');
 
-  Future<int> measureExecutionTime(Future<void> Function() task) async {
+  void measureExecutionTime(Future<void> Function() task) {
     logger.fine('Starting execution time measurement');
     final sw = Stopwatch()..start();
     try {
-      await task();
+      task();
     } catch (e, st) {
       logger.severe('Task threw an exception', e, st);
       rethrow;
@@ -20,7 +20,6 @@ class ExecTime {
     }
     final ms = sw.elapsedMilliseconds;
     logger.info('Execution time: ${ms}ms');
-    return ms;
   }
 
   Future<void> measureUIFreezTime(void Function() task) async {

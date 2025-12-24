@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:perform_test/service/app_config/app_config.dart';
+import 'package:perform_test/core/config/feature_toggle.dart';
 import 'package:perform_test/service/app_config/widget/app_config_widgets.dart';
 
 class AppConfigPage extends StatelessWidget {

@@ -1,20 +1,23 @@
 import 'package:flutter/widgets.dart';
-import 'package:perform_test/data/datasource/api.dart';
+import 'package:perform_test/di/injection_container.dart' as di;
+import 'package:perform_test/domain/repository/photo_repository.dart';
+import 'package:perform_test/perform_test_app.dart';
 import 'package:perform_test/service/app_config/app_config.dart';
 import 'package:perform_test/service/app_config/app_config_provider.dart';
-import 'package:perform_test/main.dart';
 
 /// Создаёт тестовый экземпляр приложения с полностью инициализированным AppConfig.
 Future<Widget> createTestApp() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final appConfig = AppConfig();
-  await appConfig.init(isIntegrationTest: true);
+  // Инициализация DI контейнера
+  await di.init();
 
-  final datasource = Datasource(appConfig: appConfig);
+  // Инициализация AppConfig
+  final appConfig = di.sl<AppConfig>();
+  await appConfig.init(isIntegrationTest: true);
 
   return AppConfigProvider(
     notifier: appConfig,
-    child: MyApp(datasource: datasource),
+    child: PerformTestApp(photoRepository: di.sl<PhotoRepository>()),
   );
 }

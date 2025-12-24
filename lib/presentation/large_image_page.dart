@@ -1,32 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:perform_test/core/providers/photo_repository_provider.dart';
+import 'package:perform_test/data/model/photo.dart';
 import 'package:perform_test/service/app_config/widget/app_config_widgets.dart';
-
-import '../data/datasource/api.dart';
-import '../data/model/photo.dart';
 import 'profile/widgets/photo_list_item.dart';
 
 class LargeImagePage extends StatefulWidget {
-  const LargeImagePage({super.key, required this.datasource});
-  final Datasource datasource;
+  const LargeImagePage({super.key});
 
   @override
   State<LargeImagePage> createState() => _LargeImagePageState();
 }
 
 class _LargeImagePageState extends State<LargeImagePage> {
-  late Future<List<Photo>> _photos;
+  Future<List<Photo>>? _photos;
 
   @override
-  void initState() {
-    super.initState();
-    _photos = widget.datasource.fetchPhotos();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Инициализируем загрузку фотографий при первом доступе к контексту
+    _photos ??= PhotoRepositoryProvider.of(context).getPhotos();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppConfigBar(title: Text('LargeImage')),
-      body: FutureBuilder(
+      body: FutureBuilder<List<Photo>>(
         future: _photos,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
