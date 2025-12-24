@@ -1,0 +1,8 @@
+{
+  "optimFibonacci": false,
+  "correctDataUpdate": false,
+  "lazyLoad": false,
+  "optimImageSize": false,
+  "minimizeExpensiveRendering": false,
+  "largeJsonParce": false
+}

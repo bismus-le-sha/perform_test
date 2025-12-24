@@ -1,0 +1,33 @@
+name: perform_test
+description: "A new Flutter project."
+publish_to: "none"
+version: 0.1.0
+
+environment:
+  sdk: ^3.10.0-162.1.beta
+
+dependencies:
+  build_runner: ^2.10.1
+  cached_network_image: ^3.4.1
+  flutter:
+    sdk: flutter
+  freezed: ^3.2.3
+  freezed_annotation: ^3.1.0
+  http: ^1.5.0
+  json_annotation: ^4.9.0
+  json_serializable: ^6.11.1
+  logging: ^1.3.0
+  path_provider: ^2.1.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  integration_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/data/
+    - assets/config/
