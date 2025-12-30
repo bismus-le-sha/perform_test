@@ -18,13 +18,16 @@ class PhotoList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appConfig = AppConfigProvider.of(context);
-    
+
     // Используем Timeline для визуализации в DevTools
-    developer.Timeline.startSync('PHOTO_LIST_BUILD', arguments: {
-      'photoCount': photos.length,
-      'lazyLoad': appConfig.get(FeatureToggle.lazyLoad),
-    });
-    
+    developer.Timeline.startSync(
+      'PHOTO_LIST_BUILD',
+      arguments: {
+        'photoCount': photos.length,
+        'lazyLoad': appConfig.get(FeatureToggle.lazyLoad),
+      },
+    );
+
     // Используем Stopwatch для точного измерения
     final buildStopwatch = Stopwatch()..start();
 
@@ -44,7 +47,12 @@ class PhotoList extends StatelessWidget {
           children: photos
               .asMap()
               .entries
-              .map((entry) => PhotoListItem(photo: entry.value))
+              .expand(
+                (entry) => [
+                  PhotoListItem(photo: entry.value),
+                  if (entry.key < photos.length - 1) const SizedBox(height: 16),
+                ],
+              )
               .toList(),
         ),
       );

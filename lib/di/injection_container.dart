@@ -33,6 +33,7 @@ Future<void> init() async {
   sl.registerLazySingleton<PhotoRemoteDataSource>(
     () => PhotoRemoteDataSource(
       logger: sl<Logger>(instanceName: 'photoRemoteDataSource'),
+      appConfig: sl<AppConfig>(),
     ),
   );
 

@@ -10,7 +10,18 @@ import 'package:perform_test/service/app_config/app_config_provider.dart';
 import 'package:perform_test/service/app_config/widget/app_config_widgets.dart';
 import 'package:perform_test/presentation/skeleton/skeleton.dart';
 import 'package:perform_test/service/metrics_handlers/frame_stats_collector.dart';
+import 'package:perform_test/service/metrics_handlers/image_memory_tracker.dart';
 
+/// Main feed screen displaying photos with performance instrumentation.
+///
+/// EXPERIMENTS ACTIVE ON THIS SCREEN:
+///
+/// 1. correctDataUpdate - Widget rebuild efficiency (scroll button)
+/// 2. lazyLoad - Lazy vs eager list rendering
+/// 3. optimImageSize - Image decode size optimization
+/// 4. largeJsonParse - JSON parsing isolate offloading
+/// 5. minimizeExpensiveRendering - Shimmer optimization (skeleton)
+/// 6. staticPlaceholder - Animation cost isolation (skeleton)
 class PhotosFeedScreen extends StatefulWidget {
   const PhotosFeedScreen({super.key});
 
@@ -21,32 +32,30 @@ class PhotosFeedScreen extends StatefulWidget {
 class _PhotosFeedScreenState extends State<PhotosFeedScreen> {
   Future<List<Photo>>? _photos;
   final ScrollController _scrollController = ScrollController();
-  final _collector = FrameStatsCollector(summaryInterval: Duration(seconds: 3));
-  bool _showScrollingToTopButton = false;
+  final _collector = FrameStatsCollector(
+    summaryInterval: Duration(seconds: 3),
+    warmUpFrames: 30, // Skip first ~0.5s of frames
+  );
 
   @override
   void initState() {
     super.initState();
     _collector.start();
+    ImageMemoryTracker.instance.start();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Инициализируем загрузку фотографий при первом доступе к контексту
+    // Initialize photo loading on first context access
     _photos ??= PhotoRepositoryProvider.of(context).getPhotos();
   }
 
-  // void _scrollListener() {
-  //   setState(() {
-  //     _showScrollingToTopButton = _scrollController.offset > 100;
-  //   });
-  // }
-
   @override
   void dispose() {
-    // _scrollController.removeListener(_scrollListener);
     _collector.stop();
+    ImageMemoryTracker.instance.stop();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -68,7 +77,6 @@ class _PhotosFeedScreenState extends State<PhotosFeedScreen> {
         future: _photos!,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            // return Center(child: const CircularProgressIndicator());
             return const SkeletonPlaceholder();
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
@@ -80,20 +88,12 @@ class _PhotosFeedScreenState extends State<PhotosFeedScreen> {
           }
         },
       ),
+      // EXPERIMENT: correctDataUpdate toggle
+      // false: BadScrollToTopButton - setState on EVERY scroll event
+      // true: OptimScrollToTopButton - setState only when threshold crossed
       floatingActionButton: appConfig.get(FeatureToggle.correctDataUpdate)
           ? OptimScrollToTopButton(scrollController: _scrollController)
-          : (_showScrollingToTopButton
-                ? FloatingActionButton(
-                    onPressed: () {
-                      _scrollController.animateTo(
-                        0.0,
-                        curve: Curves.easeIn,
-                        duration: const Duration(milliseconds: 300),
-                      );
-                    },
-                    child: const Icon(Icons.arrow_upward),
-                  )
-                : const SizedBox.shrink()),
+          : BadScrollToTopButton(scrollController: _scrollController),
     );
   }
 }

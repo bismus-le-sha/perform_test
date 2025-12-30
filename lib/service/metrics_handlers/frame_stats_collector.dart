@@ -2,23 +2,40 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
-/// Собирает статистику по производительности кадров.
-/// Разделяет метрики на build time, raster time и total time для
-/// корректного анализа узких мест производительности.
+/// Collects frame timing statistics for performance analysis.
+///
+/// Separates metrics into build time, raster time, and total time for
+/// identifying performance bottlenecks.
+///
+/// METRICS PROVIDED:
+/// - FPS (average and effective)
+/// - Build time percentiles (p50, p75, p95, p99)
+/// - Raster time percentiles (p50, p75, p95, p99)
+/// - Total frame time percentiles (p50, p75, p95, p99)
+/// - Jank percentage (frames > 16.67ms)
+///
+/// WARM-UP SUPPORT:
+/// Set warmUpFrames > 0 to exclude initial frames from statistics,
+/// eliminating JIT compilation noise from measurements.
 class FrameStatsCollector {
-  FrameStatsCollector({this.summaryInterval = const Duration(seconds: 5)});
+  FrameStatsCollector({
+    this.summaryInterval = const Duration(seconds: 5),
+    this.warmUpFrames = 30, // Skip first ~0.5 seconds of frames
+  });
 
   final Duration summaryInterval;
+  final int warmUpFrames;
 
   final List<FrameTiming> _frames = [];
-  final List<int> _buildTimes = []; // в микросекундах
-  final List<int> _rasterTimes = []; // в микросекундах
-  final List<int> _totalTimes = []; // в микросекундах
-  
+  final List<int> _buildTimes = []; // microseconds
+  final List<int> _rasterTimes = []; // microseconds
+  final List<int> _totalTimes = []; // microseconds
+
+  int _skippedFrames = 0;
   bool _isRunning = false;
   Timer? _summaryTimer;
 
-  /// Количество кадров, известное на момент последнего summary.
+  /// Frame count at last summary
   int _lastFrameCount = 0;
 
   // ---------------------------------------------------------------------------
@@ -29,6 +46,7 @@ class FrameStatsCollector {
     if (_isRunning) return;
     _isRunning = true;
     _lastFrameCount = 0;
+    _skippedFrames = 0;
     _frames.clear();
     _buildTimes.clear();
     _rasterTimes.clear();
@@ -40,7 +58,7 @@ class FrameStatsCollector {
       _maybePrintSummary();
     });
 
-    debugPrint('[FrameStatsCollector] START');
+    debugPrint('[FrameStatsCollector] START (warm-up: $warmUpFrames frames)');
   }
 
   void stop() {
@@ -52,7 +70,6 @@ class FrameStatsCollector {
     _summaryTimer?.cancel();
     _summaryTimer = null;
 
-    // всегда финальный отчет, даже если кадров нет
     _printSummary(finalReport: true);
 
     _frames.clear();
@@ -63,15 +80,31 @@ class FrameStatsCollector {
     debugPrint('[FrameStatsCollector] STOP');
   }
 
+  /// Get current statistics without printing
+  FrameStatsSummary getStats() {
+    return FrameStatsSummary(
+      frameCount: _frames.length,
+      skippedFrames: _skippedFrames,
+      buildStats: _calculateStats(_buildTimes),
+      rasterStats: _calculateStats(_rasterTimes),
+      totalStats: _calculateStats(_totalTimes),
+      jankPercent: _calcJankPercent(_frames),
+    );
+  }
+
   // ---------------------------------------------------------------------------
   // Callbacks
   // ---------------------------------------------------------------------------
 
   void _onFrame(List<FrameTiming> timings) {
     for (final timing in timings) {
+      // Skip warm-up frames
+      if (_skippedFrames < warmUpFrames) {
+        _skippedFrames++;
+        continue;
+      }
+
       _frames.add(timing);
-      
-      // Сохраняем детальную информацию отдельно для каждого типа метрики
       _buildTimes.add(timing.buildDuration.inMicroseconds);
       _rasterTimes.add(timing.rasterDuration.inMicroseconds);
       _totalTimes.add(timing.totalSpan.inMicroseconds);
@@ -84,11 +117,7 @@ class FrameStatsCollector {
 
   void _maybePrintSummary() {
     if (_frames.isEmpty) return;
-
-    // Проверяем, изменилось ли количество кадров
-    if (_frames.length == _lastFrameCount) {
-      return; // новых кадров нет → summary не выводим
-    }
+    if (_frames.length == _lastFrameCount) return;
 
     _lastFrameCount = _frames.length;
     _printSummary();
@@ -100,7 +129,9 @@ class FrameStatsCollector {
 
   void _printSummary({bool finalReport = false}) {
     if (_frames.isEmpty) {
-      debugPrint('[FrameStatsCollector] No frames yet');
+      debugPrint(
+        '[FrameStatsCollector] No frames yet (skipped: $_skippedFrames warm-up)',
+      );
       return;
     }
 
@@ -112,43 +143,49 @@ class FrameStatsCollector {
     final prefix = finalReport ? '[FINAL]' : '[SUMMARY]';
 
     debugPrint('''
-$prefix FrameStats (N=${_frames.length}):
+$prefix FrameStats (N=${_frames.length}, warm-up skipped: $_skippedFrames):
   FPS (avg): ${_fps(totalStats.avg).toStringAsFixed(1)}
   
   Build time (widget tree construction):
-    avg: ${buildStats.avg.toStringAsFixed(2)} ms
-    p75: ${buildStats.p75.toStringAsFixed(2)} ms
-    p95: ${buildStats.p95.toStringAsFixed(2)} ms
-    p99: ${buildStats.p99.toStringAsFixed(2)} ms
+    median: ${totalStats.p50.toStringAsFixed(2)} ms (p50)
+    avg:    ${buildStats.avg.toStringAsFixed(2)} ms
+    p75:    ${buildStats.p75.toStringAsFixed(2)} ms
+    p95:    ${buildStats.p95.toStringAsFixed(2)} ms
+    p99:    ${buildStats.p99.toStringAsFixed(2)} ms
   
   Raster time (GPU rendering):
-    avg: ${rasterStats.avg.toStringAsFixed(2)} ms
-    p75: ${rasterStats.p75.toStringAsFixed(2)} ms
-    p95: ${rasterStats.p95.toStringAsFixed(2)} ms
-    p99: ${rasterStats.p99.toStringAsFixed(2)} ms
+    median: ${rasterStats.p50.toStringAsFixed(2)} ms (p50)
+    avg:    ${rasterStats.avg.toStringAsFixed(2)} ms
+    p75:    ${rasterStats.p75.toStringAsFixed(2)} ms
+    p95:    ${rasterStats.p95.toStringAsFixed(2)} ms
+    p99:    ${rasterStats.p99.toStringAsFixed(2)} ms
   
   Total time (build + layout + paint + raster):
-    avg: ${totalStats.avg.toStringAsFixed(2)} ms
-    p75: ${totalStats.p75.toStringAsFixed(2)} ms
-    p95: ${totalStats.p95.toStringAsFixed(2)} ms
-    p99: ${totalStats.p99.toStringAsFixed(2)} ms
+    median: ${totalStats.p50.toStringAsFixed(2)} ms (p50)
+    avg:    ${totalStats.avg.toStringAsFixed(2)} ms
+    p75:    ${totalStats.p75.toStringAsFixed(2)} ms
+    p95:    ${totalStats.p95.toStringAsFixed(2)} ms
+    p99:    ${totalStats.p99.toStringAsFixed(2)} ms
   
   Jank (>16.67ms): ${jankPercent.toStringAsFixed(2)}%
 ''');
   }
 
-  _FrameStats _calculateStats(List<int> values) {
-    if (values.isEmpty) return _FrameStats(0, 0, 0, 0);
-    
+  FrameStats _calculateStats(List<int> values) {
+    if (values.isEmpty) return FrameStats.empty;
+
     final sorted = [...values]..sort();
     final length = sorted.length;
-    
-    final avg = sorted.reduce((a, b) => a + b) / length / 1000.0; // конвертируем в ms
+
+    final avg = sorted.reduce((a, b) => a + b) / length / 1000.0;
+    final p50 = length.isOdd
+        ? sorted[length ~/ 2] / 1000.0
+        : (sorted[length ~/ 2 - 1] + sorted[length ~/ 2]) / 2 / 1000.0;
     final p75 = sorted[(length * 0.75).floor()] / 1000.0;
     final p95 = sorted[(length * 0.95).floor()] / 1000.0;
     final p99 = sorted[(length * 0.99).floor()] / 1000.0;
-    
-    return _FrameStats(avg, p75, p95, p99);
+
+    return FrameStats(avg, p50, p75, p95, p99);
   }
 
   double _fps(double avgFrameMs) {
@@ -156,31 +193,81 @@ $prefix FrameStats (N=${_frames.length}):
     return 1000.0 / avgFrameMs;
   }
 
-  /// Вычисляет процент кадров с jank (превышающих 16.67ms для 60 FPS).
-  /// Использует правильный порог 16.67ms вместо 16ms.
+  /// Calculate jank percentage (frames exceeding 16.67ms for 60 FPS).
   double _calcJankPercent(List<FrameTiming> timings) {
     if (timings.isEmpty) return 0;
-    
+
     int jank = 0;
-    // Правильный порог для 60 FPS: 1000ms / 60 = 16.67ms
-    const jankThresholdMs = 16.67;
-    
+    const jankThresholdUs = 16670; // 16.67ms in microseconds for precision
+
     for (final t in timings) {
-      if (t.totalSpan.inMilliseconds > jankThresholdMs) {
+      if (t.totalSpan.inMicroseconds > jankThresholdUs) {
         jank++;
       }
     }
-    
+
     return (jank / timings.length) * 100;
   }
 }
 
-/// Внутренний класс для хранения статистики по кадрам.
-class _FrameStats {
+/// Frame timing statistics (public for export)
+class FrameStats {
   final double avg;
+  final double p50; // median
   final double p75;
   final double p95;
   final double p99;
-  
-  _FrameStats(this.avg, this.p75, this.p95, this.p99);
+
+  const FrameStats(this.avg, this.p50, this.p75, this.p95, this.p99);
+
+  static const empty = FrameStats(0, 0, 0, 0, 0);
+}
+
+/// Public summary of frame statistics for export/analysis
+class FrameStatsSummary {
+  final int frameCount;
+  final int skippedFrames;
+  final FrameStats buildStats;
+  final FrameStats rasterStats;
+  final FrameStats totalStats;
+  final double jankPercent;
+
+  FrameStatsSummary({
+    required this.frameCount,
+    required this.skippedFrames,
+    required this.buildStats,
+    required this.rasterStats,
+    required this.totalStats,
+    required this.jankPercent,
+  });
+
+  double get avgFps => totalStats.avg > 0 ? 1000.0 / totalStats.avg : 0;
+
+  Map<String, dynamic> toJson() => {
+    'frameCount': frameCount,
+    'skippedWarmUpFrames': skippedFrames,
+    'avgFps': avgFps,
+    'jankPercent': jankPercent,
+    'buildTimeMs': {
+      'avg': buildStats.avg,
+      'p50': buildStats.p50,
+      'p75': buildStats.p75,
+      'p95': buildStats.p95,
+      'p99': buildStats.p99,
+    },
+    'rasterTimeMs': {
+      'avg': rasterStats.avg,
+      'p50': rasterStats.p50,
+      'p75': rasterStats.p75,
+      'p95': rasterStats.p95,
+      'p99': rasterStats.p99,
+    },
+    'totalTimeMs': {
+      'avg': totalStats.avg,
+      'p50': totalStats.p50,
+      'p75': totalStats.p75,
+      'p95': totalStats.p95,
+      'p99': totalStats.p99,
+    },
+  };
 }
