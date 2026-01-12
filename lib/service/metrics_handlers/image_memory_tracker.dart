@@ -2,38 +2,52 @@ import 'package:flutter/material.dart';
 
 /// Tracks decoded image memory usage for the optimImageSize experiment.
 ///
-/// HYPOTHESIS: Using cacheWidth/cacheHeight reduces decoded image memory
-/// without changing visual appearance (within layout constraints).
+/// ## HYPOTHESIS
+/// Using `cacheWidth`/`cacheHeight` reduces decoded bitmap size in GPU memory
+/// without affecting visual quality at the displayed size.
 ///
-/// METRICS:
-/// - Decoded image size in bytes (sizeBytes from ImageInfo)
-/// - Number of images tracked
-/// - Total memory consumption
+/// ## KEY METRICS
+/// - **Decoded Bitmap Size**: `width × height × 4` bytes (RGBA)
+/// - **Compression Ratio**: `originalPixels / decodedPixels`
+/// - **Memory Savings %**: `(original - decoded) / original × 100`
 ///
-/// WHAT SHOULD CHANGE: Decoded bytes per image (lower with cacheWidth)
-/// WHAT SHOULD NOT CHANGE: Visual appearance, layout, FPS
+/// ## EXCLUDED METRICS (not valid for this experiment)
+/// - Raster time: does not change after image is decoded
+/// - FPS: not affected by bitmap size in memory
+/// - Network time: same URL in both conditions
 class ImageMemoryTracker {
   static final ImageMemoryTracker instance = ImageMemoryTracker._();
   ImageMemoryTracker._();
 
-  final List<ImageMeasurement> _measurements = [];
+  final List<ImageMemoryRecord> _records = [];
   bool _isTracking = false;
+  int _iterationNumber = 0;
 
-  /// Start tracking image memory
+  /// Start a new tracking session
   void start() {
-    _measurements.clear();
+    _records.clear();
+    _iterationNumber++;
     _isTracking = true;
-    debugPrint('[ImageMemoryTracker] Started tracking');
+    debugPrint(
+      '[ImageMemoryTracker] ═══ Iteration $_iterationNumber START ═══',
+    );
   }
 
-  /// Stop tracking and print summary
+  /// Stop tracking and print comprehensive summary
   void stop() {
     _isTracking = false;
     _printSummary();
-    debugPrint('[ImageMemoryTracker] Stopped tracking');
+    debugPrint('[ImageMemoryTracker] ═══ Iteration $_iterationNumber END ═══');
   }
 
-  /// Record an image measurement
+  /// Clear image cache before measurement (call this for clean experiments)
+  void clearImageCache() {
+    PaintingBinding.instance.imageCache.clear();
+    PaintingBinding.instance.imageCache.clearLiveImages();
+    debugPrint('[ImageMemoryTracker] Image cache cleared');
+  }
+
+  /// Record an image measurement with full metrics
   void recordImage({
     required String url,
     required int? sizeBytes,
@@ -47,108 +61,174 @@ class ImageMemoryTracker {
   }) {
     if (!_isTracking) return;
 
-    final measurement = ImageMeasurement(
+    // Calculate actual decoded dimensions
+    int decodedWidth = imageWidth;
+    int decodedHeight = imageHeight;
+
+    if (cacheWidth != null) {
+      decodedWidth = cacheWidth;
+      // Flutter maintains aspect ratio
+      decodedHeight = (imageHeight * cacheWidth / imageWidth).ceil();
+    }
+
+    final originalBytes = imageWidth * imageHeight * 4;
+    final decodedBytes = decodedWidth * decodedHeight * 4;
+    final compressionRatio = originalBytes / decodedBytes;
+    final savingsPercent = (originalBytes - decodedBytes) / originalBytes * 100;
+    final isOptimized = cacheWidth != null;
+
+    final record = ImageMemoryRecord(
       url: url,
-      sizeBytes: sizeBytes,
-      imageWidth: imageWidth,
-      imageHeight: imageHeight,
-      cacheWidth: cacheWidth,
-      cacheHeight: cacheHeight,
-      layoutWidth: layoutWidth,
-      layoutHeight: layoutHeight,
+      originalWidth: imageWidth,
+      originalHeight: imageHeight,
+      decodedWidth: decodedWidth,
+      decodedHeight: decodedHeight,
+      originalBytes: originalBytes,
+      decodedBytes: decodedBytes,
+      compressionRatio: compressionRatio,
+      savingsPercent: savingsPercent,
+      layoutWidth: layoutWidth.toInt(),
+      layoutHeight: layoutHeight.toInt(),
       devicePixelRatio: devicePixelRatio,
+      isOptimized: isOptimized,
     );
 
-    _measurements.add(measurement);
+    _records.add(record);
 
     debugPrint(
-      '[ImageMemoryTracker] Image loaded: '
-      '${imageWidth}x$imageHeight -> ${cacheWidth ?? imageWidth}x${cacheHeight ?? imageHeight} '
-      '(layout: ${layoutWidth.toInt()}x${layoutHeight.toInt()}, dpr: ${devicePixelRatio.toStringAsFixed(1)}) '
-      '${sizeBytes != null ? "${(sizeBytes / 1024).toStringAsFixed(0)} KB" : "size unknown"}',
+      '[IMG ${_records.length.toString().padLeft(2)}] '
+      '${isOptimized ? "✓ OPT" : "✗ RAW"}: '
+      '${imageWidth}×$imageHeight → ${decodedWidth}×$decodedHeight | '
+      '${_formatBytes(originalBytes)} → ${_formatBytes(decodedBytes)} | '
+      '${compressionRatio.toStringAsFixed(1)}x | '
+      '${isOptimized ? "-${savingsPercent.toStringAsFixed(0)}%" : "baseline"}',
     );
   }
 
   void _printSummary() {
-    if (_measurements.isEmpty) {
+    if (_records.isEmpty) {
       debugPrint('[ImageMemoryTracker] No images tracked');
       return;
     }
 
-    final withSize = _measurements.where((m) => m.sizeBytes != null).toList();
-    final totalBytes = withSize.fold<int>(0, (sum, m) => sum + m.sizeBytes!);
-    final avgBytes = withSize.isNotEmpty ? totalBytes ~/ withSize.length : 0;
+    // Calculate totals
+    int totalOriginalBytes = 0;
+    int totalDecodedBytes = 0;
+    final compressionRatios = <double>[];
 
-    final sortedSizes = withSize.map((m) => m.sizeBytes!).toList()..sort();
-    final medianBytes = sortedSizes.isNotEmpty
-        ? sortedSizes[sortedSizes.length ~/ 2]
-        : 0;
+    for (final r in _records) {
+      totalOriginalBytes += r.originalBytes;
+      totalDecodedBytes += r.decodedBytes;
+      compressionRatios.add(r.compressionRatio);
+    }
 
-    // Calculate potential savings from cacheWidth usage
-    final withCache = _measurements.where((m) => m.cacheWidth != null).length;
-    final withoutCache = _measurements
-        .where((m) => m.cacheWidth == null)
-        .length;
+    compressionRatios.sort();
+
+    final totalSavings = totalOriginalBytes - totalDecodedBytes;
+    final totalSavingsPercent = totalOriginalBytes > 0
+        ? (totalSavings / totalOriginalBytes * 100)
+        : 0.0;
+
+    // Median compression ratio
+    final medianCompression = compressionRatios.isNotEmpty
+        ? compressionRatios[compressionRatios.length ~/ 2]
+        : 1.0;
+
+    // Average per image
+    final avgDecoded = totalDecodedBytes ~/ _records.length;
+
+    final isOptimized = _records.any((r) => r.isOptimized);
 
     debugPrint('''
-=== IMAGE MEMORY SUMMARY ===
-Images tracked: ${_measurements.length}
-  - with cacheWidth: $withCache
-  - without cacheWidth: $withoutCache
 
-Memory (${withSize.length} images with size data):
-  Total:  ${(totalBytes / 1024 / 1024).toStringAsFixed(2)} MB
-  Avg:    ${(avgBytes / 1024).toStringAsFixed(0)} KB
-  Median: ${(medianBytes / 1024).toStringAsFixed(0)} KB
-=============================''');
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃  IMAGE MEMORY EXPERIMENT - ITERATION $_iterationNumber                      ┃
+┃  Mode: ${isOptimized ? "OPTIMIZED (cacheWidth enabled)" : "BASELINE (full resolution)"}              ┃
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
+┃  Images tracked: ${_records.length.toString().padLeft(3)}                                          ┃
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
+┃  ▸ PRIMARY METRIC: Decoded Bitmap Size                       ┃
+┃    ─────────────────────────────────────────────────────     ┃
+┃    Original (before):  ${_formatBytes(totalOriginalBytes).padLeft(12)}                        ┃
+┃    Decoded (after):    ${_formatBytes(totalDecodedBytes).padLeft(12)}                        ┃
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
+┃  ▸ SECONDARY METRICS                                         ┃
+┃    ─────────────────────────────────────────────────────     ┃
+┃    Memory Savings:     ${_formatBytes(totalSavings).padLeft(12)} (${totalSavingsPercent.toStringAsFixed(1)}%)             ┃
+┃    Compression Ratio:  ${medianCompression.toStringAsFixed(1).padLeft(12)}x (median)              ┃
+┃    Avg per image:      ${_formatBytes(avgDecoded).padLeft(12)}                        ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+''');
   }
 
-  /// Get current measurements for analysis
-  List<ImageMeasurement> get measurements => List.unmodifiable(_measurements);
+  String _formatBytes(int bytes) {
+    if (bytes >= 1024 * 1024 * 1024) {
+      return '${(bytes / 1024 / 1024 / 1024).toStringAsFixed(2)} GB';
+    } else if (bytes >= 1024 * 1024) {
+      return '${(bytes / 1024 / 1024).toStringAsFixed(2)} MB';
+    } else if (bytes >= 1024) {
+      return '${(bytes / 1024).toStringAsFixed(0)} KB';
+    }
+    return '$bytes B';
+  }
+
+  /// Get current records for analysis
+  List<ImageMemoryRecord> get records => List.unmodifiable(_records);
+
+  /// Get current iteration number
+  int get iterationNumber => _iterationNumber;
+
+  /// Reset iteration counter (for new experiment session)
+  void resetIterations() {
+    _iterationNumber = 0;
+    _records.clear();
+  }
 }
 
-/// Single image measurement record
-class ImageMeasurement {
+/// Immutable record of a single image memory measurement.
+///
+/// Contains pre-calculated metrics for experiment analysis:
+/// - Compression ratio (how much smaller the decoded image is)
+/// - Memory savings percentage
+/// - Original vs decoded dimensions
+class ImageMemoryRecord {
   final String url;
-  final int? sizeBytes;
-  final int imageWidth;
-  final int imageHeight;
-  final int? cacheWidth;
-  final int? cacheHeight;
-  final double layoutWidth;
-  final double layoutHeight;
+  final int originalWidth;
+  final int originalHeight;
+  final int decodedWidth;
+  final int decodedHeight;
+  final int originalBytes;
+  final int decodedBytes;
+  final double compressionRatio;
+  final double savingsPercent;
+  final int layoutWidth;
+  final int layoutHeight;
   final double devicePixelRatio;
+  final bool isOptimized;
   final DateTime timestamp;
 
-  ImageMeasurement({
+  ImageMemoryRecord({
     required this.url,
-    required this.sizeBytes,
-    required this.imageWidth,
-    required this.imageHeight,
-    required this.cacheWidth,
-    required this.cacheHeight,
+    required this.originalWidth,
+    required this.originalHeight,
+    required this.decodedWidth,
+    required this.decodedHeight,
+    required this.originalBytes,
+    required this.decodedBytes,
+    required this.compressionRatio,
+    required this.savingsPercent,
     required this.layoutWidth,
     required this.layoutHeight,
     required this.devicePixelRatio,
+    required this.isOptimized,
   }) : timestamp = DateTime.now();
 
-  /// Expected decoded size in bytes (RGBA, 4 bytes per pixel)
-  int get expectedDecodedBytes => imageWidth * imageHeight * 4;
-
-  /// Expected cached size if cacheWidth/cacheHeight were used
-  int get expectedCachedBytes {
-    if (cacheWidth == null && cacheHeight == null) {
-      return expectedDecodedBytes;
-    }
-    final w = cacheWidth ?? imageWidth;
-    final h = cacheHeight ?? imageHeight;
-    return w * h * 4;
-  }
-
-  /// Memory savings ratio from using cacheWidth/cacheHeight
-  double get memorySavingsRatio {
-    if (cacheWidth == null && cacheHeight == null) return 0;
-    return 1 - (expectedCachedBytes / expectedDecodedBytes);
+  @override
+  String toString() {
+    return 'ImageMemoryRecord('
+        '${originalWidth}×$originalHeight → ${decodedWidth}×$decodedHeight, '
+        'ratio: ${compressionRatio.toStringAsFixed(1)}x, '
+        'savings: ${savingsPercent.toStringAsFixed(0)}%)';
   }
 }
 
