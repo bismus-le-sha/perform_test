@@ -10,12 +10,14 @@ import 'package:perform_test/core/config/feature_toggle.dart';
 class AppConfig extends ChangeNotifier {
   static final _instance = AppConfig._internal();
   final _flags = <FeatureToggle, bool>{};
-  late final File _configFile;
+  File? _configFile;
+  bool _isIntegrationTest = false;
 
   AppConfig._internal();
   factory AppConfig() => _instance;
 
   Future<void> init({bool isIntegrationTest = false}) async {
+    _isIntegrationTest = isIntegrationTest;
     if (isIntegrationTest) {
       final jsonString = await services.rootBundle.loadString(
         "assets/config/app_config.json",
@@ -24,8 +26,8 @@ class AppConfig extends ChangeNotifier {
     } else {
       final dir = await getApplicationDocumentsDirectory();
       _configFile = File('${dir.path}/app_config.json');
-      if (await _configFile.exists()) {
-        final jsonString = await _configFile.readAsString();
+      if (await _configFile!.exists()) {
+        final jsonString = await _configFile!.readAsString();
         _readConfig(jsonString);
       } else {
         await _saveToFile();
@@ -48,13 +50,16 @@ class AppConfig extends ChangeNotifier {
 
   void set(FeatureToggle key, bool value) {
     _flags[key] = value;
-    _saveToFile();
+    if (!_isIntegrationTest && _configFile != null) {
+      _saveToFile();
+    }
     notifyListeners();
   }
 
   Future<void> _saveToFile() async {
+    if (_configFile == null) return;
     final jsonMap = {for (var e in _flags.entries) e.key.name: e.value};
-    await _configFile.writeAsString(jsonEncode(jsonMap));
+    await _configFile!.writeAsString(jsonEncode(jsonMap));
   }
 
   String getConfigToString() {

@@ -12,6 +12,11 @@ final sl = GetIt.instance;
 /// Инициализация контейнера зависимостей.
 /// Регистрирует все сервисы и зависимости приложения.
 Future<void> init() async {
+  // Если уже инициализирован, пропускаем
+  if (sl.isRegistered<AppConfig>()) {
+    return;
+  }
+
   // Настройка глобального логгера
   configureGlobalLogging(level: Level.INFO);
 

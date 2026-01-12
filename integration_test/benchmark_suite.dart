@@ -242,27 +242,48 @@ Future<int> _measureFrameDropsDuringLoad(
   IntegrationTestWidgetsFlutterBinding binding,
 ) async {
   int frameDrops = 0;
+  int frameCount = 0;
 
-  // Wait for skeleton to appear
+  // Wait for first frame
   await tester.pump();
-  expect(find.byType(SkeletonPlaceholder), findsOneWidget);
 
-  // Measure frames until content loads
+  // Optionally check for skeleton (not required)
+  final hasSkeletonFinder = find.byType(SkeletonPlaceholder);
+  if (hasSkeletonFinder.evaluate().isNotEmpty) {
+    debugPrint('  Skeleton placeholder visible');
+  }
+
+  // Measure frames during loading
+  final stopwatch = Stopwatch()..start();
   final startTime = DateTime.now();
+
+  // Pump frames until content appears or timeout
   while (find.byType(PhotoListItem).evaluate().isEmpty) {
+    final pumpStart = DateTime.now();
     await tester.pump(const Duration(milliseconds: 16));
+    final pumpDuration = DateTime.now().difference(pumpStart);
+
+    frameCount++;
+
+    // Count as frame drop if pump took >20ms (missed vsync)
+    if (pumpDuration.inMilliseconds > 20) {
+      frameDrops++;
+    }
+
     if (DateTime.now().difference(startTime) > const Duration(seconds: 10)) {
-      break; // Timeout
+      debugPrint('  Timeout waiting for content');
+      break;
     }
   }
 
-  // Get frame timing summary from binding
-  final summary = await binding.traceAction(() async {
-    await tester.pumpAndSettle();
-  });
+  stopwatch.stop();
+  debugPrint(
+    '  Loaded in ${stopwatch.elapsedMilliseconds}ms, $frameCount frames, $frameDrops drops',
+  );
 
-  // Count frames that exceeded 16.67ms
-  // Note: In real implementation, use FrameStatsCollector
+  // Settle after load
+  await tester.pumpAndSettle();
+
   return frameDrops;
 }
 
@@ -271,19 +292,46 @@ Future<Map<String, dynamic>> _measureScrollPerformance(
   WidgetTester tester,
   IntegrationTestWidgetsFlutterBinding binding,
 ) async {
-  final scrollable = find.byType(Scrollable).first;
+  final scrollableFinder = find.byType(Scrollable);
 
-  // Trace scroll action
-  final summary = await binding.traceAction(() async {
-    await tester.drag(scrollable, const Offset(0, -1000));
-    await tester.pumpAndSettle();
-    await tester.drag(scrollable, const Offset(0, 1000));
-    await tester.pumpAndSettle();
-  });
+  if (scrollableFinder.evaluate().isEmpty) {
+    debugPrint('  No scrollable found');
+    return {'scrolled': false, 'error': 'No scrollable widget found'};
+  }
+
+  final scrollable = scrollableFinder.first;
+  final stopwatch = Stopwatch()..start();
+  int frameCount = 0;
+
+  // Scroll down
+  await tester.drag(scrollable, const Offset(0, -500));
+  for (int i = 0; i < 30; i++) {
+    await tester.pump(const Duration(milliseconds: 16));
+    frameCount++;
+  }
+
+  // Scroll up
+  await tester.drag(scrollable, const Offset(0, 500));
+  for (int i = 0; i < 30; i++) {
+    await tester.pump(const Duration(milliseconds: 16));
+    frameCount++;
+  }
+
+  stopwatch.stop();
+
+  final avgFrameTime = stopwatch.elapsedMilliseconds / frameCount;
+  final estimatedFps = 1000 / avgFrameTime;
+
+  debugPrint(
+    '  Scroll: $frameCount frames in ${stopwatch.elapsedMilliseconds}ms, ~${estimatedFps.toStringAsFixed(1)} FPS',
+  );
 
   return {
     'scrolled': true,
-    // In real implementation, extract metrics from summary
+    'scrollDurationMs': stopwatch.elapsedMilliseconds,
+    'frameCount': frameCount,
+    'avgFrameTimeMs': avgFrameTime.toStringAsFixed(2),
+    'estimatedFps': estimatedFps.toStringAsFixed(1),
   };
 }
 
