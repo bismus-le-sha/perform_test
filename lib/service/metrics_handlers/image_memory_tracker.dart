@@ -97,7 +97,7 @@ class ImageMemoryTracker {
 
     debugPrint(
       '[IMG ${_records.length.toString().padLeft(2)}] '
-      '${isOptimized ? "✓ OPT" : "✗ RAW"}: '
+      '${isOptimized ? "[OPT]" : "[RAW]"}: '
       '${imageWidth}×$imageHeight → ${decodedWidth}×$decodedHeight | '
       '${_formatBytes(originalBytes)} → ${_formatBytes(decodedBytes)} | '
       '${compressionRatio.toStringAsFixed(1)}x | '

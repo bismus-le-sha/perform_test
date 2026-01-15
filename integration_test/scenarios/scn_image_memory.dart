@@ -144,28 +144,28 @@ Image decode strategy:
 /// ## VALIDITY ASSESSMENT
 ///
 /// ### What This Experiment CORRECTLY Measures:
-/// 1. ✅ Decoded bitmap size difference (PRIMARY)
-/// 2. ✅ Memory savings from sized decoding
-/// 3. ✅ Practical impact on image-heavy UIs
+/// 1. Decoded bitmap size difference (PRIMARY)
+/// 2. Memory savings from sized decoding
+/// 3. Practical impact on image-heavy UIs
 ///
 /// ### Common Misconceptions Addressed:
-/// 1. ❌ "This reduces network usage" - FALSE. Same image downloaded.
-/// 2. ❌ "This affects image quality" - FALSE at proper DPR calculation.
-/// 3. ✅ This only affects CLIENT-SIDE decode memory.
+/// 1. "This reduces network usage" - FALSE. Same image downloaded.
+/// 2. "This affects image quality" - FALSE at proper DPR calculation.
+/// 3. This only affects CLIENT-SIDE decode memory.
 ///
 /// ### Metrics That Are INVALID for This Experiment:
-/// 1. ❌ Network time - Same URL, same download
-/// 2. ❌ FPS - Not directly affected by bitmap size in memory
-/// 3. ❌ Raster time after decode - Bitmap already in GPU memory
+/// 1. Network time - Same URL, same download
+/// 2. FPS - Not directly affected by bitmap size in memory
+/// 3. Raster time after decode - Bitmap already in GPU memory
 ///
 /// ### Potential Confounds:
-/// 1. ⚠️ IMAGE CACHE: Flutter's ImageCache may affect measurements
+/// 1. IMAGE CACHE: Flutter's ImageCache may affect measurements
 ///    - MITIGATION: Clear cache before each measurement
 ///
-/// 2. ⚠️ JPEG DECODING VARIANCE: Same image may decode slightly differently
+/// 2. JPEG DECODING VARIANCE: Same image may decode slightly differently
 ///    - MITIGATION: Use mathematical formula (W×H×4) not sizeBytes
 ///
-/// 3. ⚠️ DEVICEPIXELRATIO: Different devices have different DPR
+/// 3. DEVICEPIXELRATIO: Different devices have different DPR
 ///    - MITIGATION: Document DPR, calculate expected sizes
 ///
 /// ### Calculation Verification:

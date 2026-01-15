@@ -94,7 +94,8 @@ List rendering strategy:
     // TRADE-OFF METRIC - Scroll FPS
     MetricDefinition(
       name: 'scroll_fps',
-      description: 'Average FPS during scroll (may differ due to on-demand building)',
+      description:
+          'Average FPS during scroll (may differ due to on-demand building)',
       source: MetricSource.frameTimings,
       unit: MetricUnit.fps,
       aggregation: AggregationType.mean,
@@ -138,39 +139,39 @@ List rendering strategy:
 /// ## VALIDITY ASSESSMENT
 ///
 /// ### What This Experiment CORRECTLY Measures:
-/// 1. ✅ Initial build time difference (dramatic for large lists)
-/// 2. ✅ Widget count difference (500 vs ~15 initially)
-/// 3. ✅ Memory footprint difference
+/// 1. Initial build time difference (dramatic for large lists)
+/// 2. Widget count difference (500 vs ~15 initially)
+/// 3. Memory footprint difference
 ///
 /// ### Important Nuances:
 ///
-/// 1. ⚠️ BUILD() STOPWATCH MEASURES DIFFERENT THINGS:
+/// 1. BUILD() STOPWATCH MEASURES DIFFERENT THINGS:
 ///    - EAGER: Measures building Column with 500 PhotoListItem children
 ///    - LAZY: Measures building ListView.separated widget (NOT item builders)
 ///
 ///    The Stopwatch in PhotoList.build() shows DRAMATIC difference because
 ///    it measures widget CONSTRUCTION, not rendering.
 ///
-/// 2. ⚠️ SCROLL PERFORMANCE TRADE-OFF:
+/// 2. SCROLL PERFORMANCE TRADE-OFF:
 ///    - EAGER: All items pre-built, scroll is "free"
 ///    - LAZY: Items built on-demand, may cause scroll jank
 ///
 ///    This is a TRADE-OFF, not a bug. Document both metrics.
 ///
-/// 3. ⚠️ ITEM COMPLEXITY MATTERS:
+/// 3. ITEM COMPLEXITY MATTERS:
 ///    - Simple items: Lazy has small advantage
 ///    - Complex items with images: Lazy has HUGE advantage
 ///
 /// ### Potential Confounds:
-/// 1. ⚠️ IMAGE LOADING: Network images load asynchronously
+/// 1. IMAGE LOADING: Network images load asynchronously
 ///    - MITIGATION: Use cached images or measure without images
 ///
-/// 2. ⚠️ LIST VIEW CACHING: ListView has internal item cache
+/// 2. LIST VIEW CACHING: ListView has internal item cache
 ///    - MITIGATION: Document cache size (cacheExtent)
 ///
 /// ### Metrics That Are QUESTIONABLE for This Experiment:
-/// 1. ⚠️ FPS during initial load - Both complete quickly on modern devices
-/// 2. ⚠️ "Total render time" - Ambiguous definition
+/// 1. FPS during initial load - Both complete quickly on modern devices
+/// 2. "Total render time" - Ambiguous definition
 ///
 /// ### Recommendations:
 /// 1. Always measure BOTH initial build AND scroll performance

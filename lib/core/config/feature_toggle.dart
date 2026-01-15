@@ -96,7 +96,9 @@ enum FeatureToggle {
   /// - UI freeze duration (high for sync, zero for async)
   /// - Frame drops during parsing
   ///
-  /// NOTE: File I/O is measured separately from parsing.
+  /// DATA SOURCES:
+  /// - Asset: assets/data/feed.json (~3.5MB)
+  /// - Network: https://raw.githubusercontent.com/json-iterator/test-data/master/large-file.json (~25MB)
   ///
   /// false: Parse on main isolate (BLOCKS UI)
   /// true: Parse via compute() (UI RESPONSIVE)

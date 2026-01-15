@@ -12,11 +12,18 @@ class AppConfig extends ChangeNotifier {
   final _flags = <FeatureToggle, bool>{};
   File? _configFile;
   bool _isIntegrationTest = false;
+  bool _initialized = false;
 
   AppConfig._internal();
   factory AppConfig() => _instance;
 
   Future<void> init({bool isIntegrationTest = false}) async {
+    // Skip re-initialization to preserve programmatically set toggles
+    if (_initialized) {
+      return;
+    }
+    _initialized = true;
+
     _isIntegrationTest = isIntegrationTest;
     if (isIntegrationTest) {
       final jsonString = await services.rootBundle.loadString(

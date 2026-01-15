@@ -65,7 +65,7 @@ class _KillWidgetState extends State<KillWidget> {
           ElevatedButton(
             onPressed: useIsolate ? _runIsolateExperiment : _runSyncExperiment,
             child: Text(
-              useIsolate ? 'Calculate in Isolate 🚀' : 'KILL UI THREAD ☠️',
+              useIsolate ? 'Calculate in Isolate' : 'KILL UI THREAD',
               style: const TextStyle(fontSize: 40),
             ),
           ),

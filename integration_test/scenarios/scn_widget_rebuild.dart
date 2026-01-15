@@ -112,7 +112,8 @@ setState() invocation strategy:
     metricName: 'widget_build_count',
     threshold: 100.0, // If optimized has >100 builds, optimization not working
     direction: DegradationDirection.higherIsBad,
-    description: 'Optimized path should have minimal rebuilds (<10 per gesture)',
+    description:
+        'Optimized path should have minimal rebuilds (<10 per gesture)',
   );
 }
 
@@ -123,29 +124,29 @@ setState() invocation strategy:
 /// ## VALIDITY ASSESSMENT
 ///
 /// ### What This Experiment CORRECTLY Measures:
-/// 1. ✅ Rebuild count reduction (PRIMARY GOAL)
-/// 2. ✅ CPU time saved by avoiding unnecessary rebuilds
-/// 3. ✅ Best practice demonstration
+/// 1. Rebuild count reduction (PRIMARY GOAL)
+/// 2. CPU time saved by avoiding unnecessary rebuilds
+/// 3. Best practice demonstration
 ///
 /// ### What This Experiment MAY NOT Detect:
-/// 1. ⚠️ FPS IMPACT: On modern devices, a simple widget rebuild may not cause
+/// 1. FPS IMPACT: On modern devices, a simple widget rebuild may not cause
 ///    visible FPS drop. The experiment validates the PRINCIPLE, not necessarily
 ///    a user-visible improvement.
 ///
-/// 2. ⚠️ WIDGET COMPLEXITY: The ScrollToTopButton is trivial. A complex widget
+/// 2. WIDGET COMPLEXITY: The ScrollToTopButton is trivial. A complex widget
 ///    would show more dramatic differences.
 ///
 /// ### Potential Confounds:
-/// 1. ⚠️ FLUTTER OPTIMIZATION: Flutter may skip actual repaint if widget tree
+/// 1. FLUTTER OPTIMIZATION: Flutter may skip actual repaint if widget tree
 ///    doesn't change (RenderObject caching).
 ///    - MITIGATION: Measure build() call count, not just visual updates
 ///
-/// 2. ⚠️ SCROLL CALLBACK FREQUENCY: Varies with scroll velocity
+/// 2. SCROLL CALLBACK FREQUENCY: Varies with scroll velocity
 ///    - MITIGATION: Use programmatic scroll with consistent parameters
 ///
 /// ### Metrics That Are QUESTIONABLE for This Experiment:
-/// 1. ⚠️ FPS - May not change for simple widgets
-/// 2. ⚠️ Memory - Rebuilds don't necessarily increase memory
+/// 1. FPS - May not change for simple widgets
+/// 2. Memory - Rebuilds don't necessarily increase memory
 ///
 /// ### Valid Primary Metric:
 /// - BUILD COUNT is the only reliable metric for this experiment

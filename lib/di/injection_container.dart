@@ -1,6 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:logging/logging.dart';
 import 'package:perform_test/data/datasource/calculate.dart';
+import 'package:perform_test/data/datasource/network_json_datasource.dart';
 import 'package:perform_test/data/datasource/photo_remote_datasource.dart';
 import 'package:perform_test/data/repository/photo_repository_impl.dart';
 import 'package:perform_test/domain/repository/photo_repository.dart';
@@ -30,6 +31,10 @@ Future<void> init() async {
     () => loggerFor('PhotoRemoteDataSource'),
     instanceName: 'photoRemoteDataSource',
   );
+  sl.registerLazySingleton<Logger>(
+    () => loggerFor('NetworkJsonDatasource'),
+    instanceName: 'networkJsonDatasource',
+  );
 
   // AppConfig регистрируем как singleton
   sl.registerSingleton<AppConfig>(AppConfig());
@@ -38,6 +43,13 @@ Future<void> init() async {
   sl.registerLazySingleton<PhotoRemoteDataSource>(
     () => PhotoRemoteDataSource(
       logger: sl<Logger>(instanceName: 'photoRemoteDataSource'),
+      appConfig: sl<AppConfig>(),
+    ),
+  );
+
+  sl.registerLazySingleton<NetworkJsonDatasource>(
+    () => NetworkJsonDatasource(
+      logger: sl<Logger>(instanceName: 'networkJsonDatasource'),
       appConfig: sl<AppConfig>(),
     ),
   );

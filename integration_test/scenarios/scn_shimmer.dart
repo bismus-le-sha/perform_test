@@ -139,39 +139,39 @@ ShaderMask architecture:
 /// ## VALIDITY ASSESSMENT
 ///
 /// ### What This Experiment CORRECTLY Measures:
-/// 1. ✅ setState() call reduction (6x → 1x)
-/// 2. ✅ GPU shader consolidation benefit
-/// 3. ✅ AnimationController instance reduction
+/// 1. setState() call reduction (6x → 1x)
+/// 2. GPU shader consolidation benefit
+/// 3. AnimationController instance reduction
 ///
 /// ### Important Nuances:
 ///
-/// 1. ⚠️ DEVICE SENSITIVITY:
+/// 1. DEVICE SENSITIVITY:
 ///    - Low-end devices: May show significant FPS difference
 ///    - High-end devices: Both may hit 60 FPS (ceiling effect)
 ///
 ///    The experiment validates the PRINCIPLE even if FPS is same.
 ///
-/// 2. ⚠️ SHADER COMPLEXITY:
+/// 2. SHADER COMPLEXITY:
 ///    - Simple linear gradient: Low GPU cost
 ///    - Complex shaders: Would show more dramatic difference
 ///
-/// 3. ⚠️ FLUTTER OPTIMIZATION:
+/// 3. FLUTTER OPTIMIZATION:
 ///    - Flutter may optimize redundant paints
 ///    - RenderObject caching may reduce actual GPU work
 ///
 /// ### Potential Confounds:
-/// 1. ⚠️ THERMAL THROTTLING: Continuous animation heats device
+/// 1. THERMAL THROTTLING: Continuous animation heats device
 ///    - MITIGATION: Limit measurement duration, pause between runs
 ///
-/// 2. ⚠️ GC FROM ANIMATION: Object allocation per tick
+/// 2. GC FROM ANIMATION: Object allocation per tick
 ///    - MITIGATION: Monitor GC events during measurement
 ///
-/// 3. ⚠️ VSYNC ALIASING: 60Hz display caps FPS at 60
+/// 3. VSYNC ALIASING: 60Hz display caps FPS at 60
 ///    - MITIGATION: Measure raster time, not just FPS
 ///
 /// ### Metrics That Are PARTIALLY VALID:
-/// 1. ⚠️ FPS - May be same on capable devices (use as sanity check)
-/// 2. ⚠️ CPU usage - Hard to attribute specifically to ShaderMask
+/// 1. FPS - May be same on capable devices (use as sanity check)
+/// 2. CPU usage - Hard to attribute specifically to ShaderMask
 ///
 /// ### Three-Way Comparison Design:
 /// This experiment benefits from THREE conditions:

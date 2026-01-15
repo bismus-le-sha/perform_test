@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:perform_test/presentation/profile/page/photos_feed_screen.dart';
 import 'package:perform_test/presentation/atoms/page/bloc_ui_tab.dart';
+import 'package:perform_test/presentation/network_json/network_json_screen.dart';
 
 class BottomTabs extends StatefulWidget {
   const BottomTabs({super.key});
@@ -16,12 +17,7 @@ class _BottomTabsState extends State<BottomTabs> {
   @override
   void initState() {
     super.initState();
-    _widgetOptions = [
-      PhotosFeedScreen(),
-      // LargeImagePage(datasource: widget.datasource),
-      DummyTab(),
-      BlocUITab(),
-    ];
+    _widgetOptions = [PhotosFeedScreen(), NetworkJsonScreen(), BlocUITab()];
   }
 
   void _onItemTapped(int index) {
@@ -39,7 +35,10 @@ class _BottomTabsState extends State<BottomTabs> {
         type: BottomNavigationBarType.fixed,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.photo), label: 'Photos'),
-          BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'Likes'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.cloud_download),
+            label: 'JSON',
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.fire_truck),
             label: 'Performance',
@@ -48,26 +47,6 @@ class _BottomTabsState extends State<BottomTabs> {
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.amber[800],
         onTap: _onItemTapped,
-      ),
-    );
-  }
-}
-
-class DummyTab extends StatelessWidget {
-  const DummyTab({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dummy tab'),
-        backgroundColor: const Color(0xFFFFB347),
-      ),
-      body: const Center(
-        child: Text(
-          'Just an empty dummy tab',
-          style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
-        ),
       ),
     );
   }

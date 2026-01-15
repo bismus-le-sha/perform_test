@@ -138,32 +138,32 @@ JSON parsing context:
 /// ## VALIDITY ASSESSMENT
 ///
 /// ### What This Experiment CORRECTLY Measures:
-/// 1. ✅ JSON parsing impact on UI thread
-/// 2. ✅ Animation smoothness during data processing
-/// 3. ✅ Practical benefit of isolate offloading for parsing
+/// 1. JSON parsing impact on UI thread
+/// 2. Animation smoothness during data processing
+/// 3. Practical benefit of isolate offloading for parsing
 ///
 /// ### Common Misconceptions Addressed:
-/// 1. ❌ "Network I/O blocks UI" - FALSE. Dart async I/O is non-blocking.
-/// 2. ❌ "All JSON parsing is slow" - Depends on size and model complexity.
-/// 3. ✅ Only CPU-bound work (parsing, mapping) can block UI.
+/// 1. "Network I/O blocks UI" - FALSE. Dart async I/O is non-blocking.
+/// 2. "All JSON parsing is slow" - Depends on size and model complexity.
+/// 3. Only CPU-bound work (parsing, mapping) can block UI.
 ///
 /// ### Potential Confounds:
-/// 1. ⚠️ JSON SIZE VARIANCE: Different JSON files may have different parse times
+/// 1. JSON SIZE VARIANCE: Different JSON files may have different parse times
 ///    - MITIGATION: Use same file across all iterations
 ///
-/// 2. ⚠️ MODEL COMPLEXITY: Generated code (json_serializable) may vary
+/// 2. MODEL COMPLEXITY: Generated code (json_serializable) may vary
 ///    - MITIGATION: Document exact model structure and generated code
 ///
-/// 3. ⚠️ GC FROM ALLOCATIONS: Parsing creates many objects
+/// 3. GC FROM ALLOCATIONS: Parsing creates many objects
 ///    - MITIGATION: Monitor GC events via VM Service
 ///
-/// 4. ⚠️ COMPUTE() SERIALIZATION OVERHEAD: Data must be serialized to isolate
+/// 4. COMPUTE() SERIALIZATION OVERHEAD: Data must be serialized to isolate
 ///    - MITIGATION: Measure serialization time separately, document overhead
 ///
 /// ### Metrics That Are INVALID for This Experiment:
-/// 1. ❌ Network latency - Not testing network performance
-/// 2. ❌ File read time - async I/O doesn't block UI
-/// 3. ❌ Total "load time" alone - Confounds I/O and parsing
+/// 1. Network latency - Not testing network performance
+/// 2. File read time - async I/O doesn't block UI
+/// 3. Total "load time" alone - Confounds I/O and parsing
 ///
 /// ### Recommendations:
 /// 1. Always measure I/O and parsing SEPARATELY

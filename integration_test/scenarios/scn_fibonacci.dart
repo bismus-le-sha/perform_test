@@ -165,21 +165,21 @@ class ExpectedOutcome {
 /// ## VALIDITY ASSESSMENT
 ///
 /// ### What This Experiment CORRECTLY Measures:
-/// 1. ✅ UI thread blocking vs. non-blocking execution
-/// 2. ✅ Frame drop count during CPU-intensive work
-/// 3. ✅ Practical benefit of isolate offloading
+/// 1. UI thread blocking vs. non-blocking execution
+/// 2. Frame drop count during CPU-intensive work
+/// 3. Practical benefit of isolate offloading
 ///
 /// ### Potential Confounds:
-/// 1. ⚠️ ISOLATE SPAWN OVERHEAD: First compute() call includes isolate creation
+/// 1. ISOLATE SPAWN OVERHEAD: First compute() call includes isolate creation
 ///    - MITIGATION: Warm-up iterations exclude first call from measurement
 ///
-/// 2. ⚠️ THERMAL THROTTLING: Long computation may heat device
+/// 2. THERMAL THROTTLING: Long computation may heat device
 ///    - MITIGATION: Pause between iterations, monitor CPU temp via ADB
 ///
-/// 3. ⚠️ GC INTERFERENCE: Memory allocation during computation may trigger GC
+/// 3. GC INTERFERENCE: Memory allocation during computation may trigger GC
 ///    - MITIGATION: Use recursive Fibonacci (minimal allocation)
 ///
-/// 4. ⚠️ BACKGROUND PROCESSES: System services may consume CPU
+/// 4. BACKGROUND PROCESSES: System services may consume CPU
 ///    - MITIGATION: Airplane mode, close background apps
 ///
 /// ### Limitations:

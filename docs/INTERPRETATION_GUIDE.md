@@ -82,31 +82,31 @@ For performance experiments, practical significance often matters more than stat
 
 ## 3. Common Interpretation Errors
 
-### 3.1 ❌ Error: Comparing Means Instead of Medians
+### 3.1 Error: Comparing Means Instead of Medians
 
 **Problem:** Performance data is typically right-skewed (some frames take much longer). Mean is pulled up by outliers.
 
 **Correct Approach:**
 
 ```
-✅ Use median (p50) for typical performance
-✅ Use p95/p99 for worst-case analysis
-❌ Don't use mean for frame times
+RECOMMENDED: Use median (p50) for typical performance
+RECOMMENDED: Use p95/p99 for worst-case analysis
+AVOID: Don't use mean for frame times
 ```
 
-### 3.2 ❌ Error: Ignoring Sample Size
+### 3.2 Error: Ignoring Sample Size
 
 **Problem:** Small sample sizes make statistics unreliable.
 
 **Correct Approach:**
 
 ```
-✅ Check frameCount or sample count
-✅ Minimum 30 samples per condition
-✅ For p99, need 100+ samples
+RECOMMENDED: Check frameCount or sample count
+RECOMMENDED: Minimum 30 samples per condition
+RECOMMENDED: For p99, need 100+ samples
 ```
 
-### 3.3 ❌ Error: FPS Ceiling Effect
+### 3.3 Error: FPS Ceiling Effect
 
 **Problem:** If both conditions achieve 60 FPS, you can't see the difference.
 
@@ -125,12 +125,12 @@ CORRECT CONCLUSION: "47% headroom improvement"
 **Correct Approach:**
 
 ```
-✅ Look at frame time percentiles, not just FPS
-✅ Look at jank percentage
-✅ Test on slower device to see ceiling effect
+RECOMMENDED: Look at frame time percentiles, not just FPS
+RECOMMENDED: Look at jank percentage
+RECOMMENDED: Test on slower device to see ceiling effect
 ```
 
-### 3.4 ❌ Error: Confounding Metrics
+### 3.4 Error: Confounding Metrics
 
 **Problem:** Measuring a metric that doesn't reflect the tested variable.
 
@@ -138,19 +138,19 @@ CORRECT CONCLUSION: "47% headroom improvement"
 
 ```
 SCN-JSON: Measuring "total load time"
-  ❌ Confounds async I/O (same in both) with sync parsing
-  ✅ Measure animation FPS DURING parsing only
+  INCORRECT: Confounds async I/O (same in both) with sync parsing
+  CORRECT: Measure animation FPS DURING parsing only
 
 SCN-IMG: Measuring FPS
-  ❌ FPS not affected by bitmap size in memory
-  ✅ Measure decoded bytes, memory savings
+  INCORRECT: FPS not affected by bitmap size in memory
+  CORRECT: Measure decoded bytes, memory savings
 
 SCN-FIB: Measuring computation time
-  ❌ Should be SAME in both conditions (control metric)
-  ✅ Measure UI responsiveness during computation
+  INCORRECT: Should be SAME in both conditions (control metric)
+  CORRECT: Measure UI responsiveness during computation
 ```
 
-### 3.5 ❌ Error: Ignoring Control Metrics
+### 3.5 Error: Ignoring Control Metrics
 
 **Problem:** If a control metric changed, the experiment may be invalid.
 
@@ -159,9 +159,9 @@ SCN-FIB: Measuring computation time
 ```
 SCN-FIB Control: Computation time should be same
   Baseline: 2015ms
-  Optimized: 2018ms ✅ (within tolerance)
+  Optimized: 2018ms [OK] (within tolerance)
 
-  If optimized was 500ms: ❌ Something wrong with setup
+  If optimized was 500ms: [INVALID] Something wrong with setup
 ```
 
 ## 4. Scenario-Specific Interpretation
@@ -269,12 +269,12 @@ SCN-FIB Control: Computation time should be same
 ```markdown
 | Scenario    | Primary Metric     | Baseline | Optimized | Change | Valid? |
 | ----------- | ------------------ | -------- | --------- | ------ | ------ |
-| SCN-FIB     | FPS during compute | 0        | 58        | +58    | ✅     |
-| SCN-JSON    | Animation FPS      | 24       | 57        | +137%  | ✅     |
-| SCN-REBUILD | Build count        | 847      | 4         | -99%   | ✅     |
-| SCN-LAZY    | Initial build (ms) | 450      | 35        | -92%   | ✅     |
-| SCN-IMG     | Decoded bytes (MB) | 48       | 4.3       | -91%   | ✅     |
-| SCN-SHIMMER | setState/sec       | 360      | 60        | -83%   | ✅     |
+| SCN-FIB     | FPS during compute | 0        | 58        | +58    | Yes    |
+| SCN-JSON    | Animation FPS      | 24       | 57        | +137%  | Yes    |
+| SCN-REBUILD | Build count        | 847      | 4         | -99%   | Yes    |
+| SCN-LAZY    | Initial build (ms) | 450      | 35        | -92%   | Yes    |
+| SCN-IMG     | Decoded bytes (MB) | 48       | 4.3       | -91%   | Yes    |
+| SCN-SHIMMER | setState/sec       | 360      | 60        | -83%   | Yes    |
 ```
 
 ### 5.2 Validity Checklist

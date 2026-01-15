@@ -206,25 +206,25 @@ LEAST RELIABLE
 ### 6.2 Common Pitfalls
 
 ```
-❌ PITFALL: Measuring FPS when device can hit 60 FPS in both conditions
-   → FPS ceiling masks improvement
-   → USE: Frame time percentiles instead
+PITFALL: Measuring FPS when device can hit 60 FPS in both conditions
+   -> FPS ceiling masks improvement
+   -> USE: Frame time percentiles instead
 
-❌ PITFALL: Reporting "total load time" for JSON parsing
-   → Confounds async I/O with sync parsing
-   → USE: Separate I/O time and parse time metrics
+PITFALL: Reporting "total load time" for JSON parsing
+   -> Confounds async I/O with sync parsing
+   -> USE: Separate I/O time and parse time metrics
 
-❌ PITFALL: Using mean for frame times
-   → Outliers skew results
-   → USE: Median and percentiles
+PITFALL: Using mean for frame times
+   -> Outliers skew results
+   -> USE: Median and percentiles
 
-❌ PITFALL: Single iteration measurements
-   → Cannot account for variance
-   → USE: Multiple iterations with statistics
+PITFALL: Single iteration measurements
+   -> Cannot account for variance
+   -> USE: Multiple iterations with statistics
 
-❌ PITFALL: Testing in Debug mode
-   → Timing is severely distorted
-   → USE: Profile mode only
+PITFALL: Testing in Debug mode
+   -> Timing is severely distorted
+   -> USE: Profile mode only
 ```
 
 ### 6.3 Reporting Template
