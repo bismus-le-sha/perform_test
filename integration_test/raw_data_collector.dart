@@ -357,6 +357,7 @@ void main() {
     setUpAll(() async {
       await di.init();
       appConfig = di.sl<AppConfig>();
+      await appConfig.init(isIntegrationTest: true);
       csvWriter = await CsvDataWriter.create();
       frameCollector = FrameTimingCollector();
 
