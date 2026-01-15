@@ -68,7 +68,7 @@ class PhotoRemoteDataSource {
 
     final loadTimeUs = sw.elapsedMicroseconds;
     _logger.info(
-      'Asset I/O time: ${loadTimeUs}μs (${(loadTimeUs / 1000).toStringAsFixed(2)}ms)',
+      'Asset I/O time: $loadTimeUsμs (${(loadTimeUs / 1000).toStringAsFixed(2)}ms)',
     );
 
     // Cache for subsequent measurements to isolate parsing

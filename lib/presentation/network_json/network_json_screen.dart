@@ -245,7 +245,7 @@ class _NetworkJsonScreenState extends State<NetworkJsonScreen>
                 Switch(
                   value: _useIsolate,
                   onChanged: (_) => _toggleMode(),
-                  activeColor: Colors.green,
+                  activeThumbColor: Colors.green,
                 ),
               ],
             ),

@@ -98,7 +98,7 @@ class ImageMemoryTracker {
     debugPrint(
       '[IMG ${_records.length.toString().padLeft(2)}] '
       '${isOptimized ? "[OPT]" : "[RAW]"}: '
-      '${imageWidth}×$imageHeight → ${decodedWidth}×$decodedHeight | '
+      '$imageWidth×$imageHeight → $decodedWidth×$decodedHeight | '
       '${_formatBytes(originalBytes)} → ${_formatBytes(decodedBytes)} | '
       '${compressionRatio.toStringAsFixed(1)}x | '
       '${isOptimized ? "-${savingsPercent.toStringAsFixed(0)}%" : "baseline"}',
@@ -226,7 +226,7 @@ class ImageMemoryRecord {
   @override
   String toString() {
     return 'ImageMemoryRecord('
-        '${originalWidth}×$originalHeight → ${decodedWidth}×$decodedHeight, '
+        '$originalWidth×$originalHeight → $decodedWidth×$decodedHeight, '
         'ratio: ${compressionRatio.toStringAsFixed(1)}x, '
         'savings: ${savingsPercent.toStringAsFixed(0)}%)';
   }

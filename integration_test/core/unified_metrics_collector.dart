@@ -113,7 +113,7 @@ class UnifiedMetricsCollector {
       totalStats: _computeStats(totalTimes),
       jankCount: jankCount,
       jankPercent: (jankCount / _frameTimings.length) * 100,
-      avgFps: _frameTimings.length > 0
+      avgFps: _frameTimings.isNotEmpty
           ? 1000 / _computeStats(totalTimes).mean
           : 0,
     );

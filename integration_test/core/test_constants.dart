@@ -5,6 +5,7 @@
 /// Shared configuration for all toggle experiments.
 /// Modify these values to adjust experiment parameters.
 /// ═══════════════════════════════════════════════════════════════════════════
+library;
 
 /// Number of data iterations per toggle state (excluding warmup)
 const int kDataIterations = 10;

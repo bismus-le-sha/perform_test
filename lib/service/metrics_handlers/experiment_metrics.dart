@@ -82,12 +82,12 @@ class ExperimentMetrics {
       _measurements.add(microseconds);
       _logger.info(
         '[$experimentName] Sync measurement #${_iterationCount - warmUpIterations}: '
-        '${microseconds}μs (${(microseconds / 1000).toStringAsFixed(2)}ms)',
+        '$microsecondsμs (${(microseconds / 1000).toStringAsFixed(2)}ms)',
       );
     } else {
       _logger.fine(
         '[$experimentName] Warm-up iteration $_iterationCount: '
-        '${microseconds}μs (${(microseconds / 1000).toStringAsFixed(2)}ms)',
+        '$microsecondsμs (${(microseconds / 1000).toStringAsFixed(2)}ms)',
       );
     }
 
@@ -133,12 +133,12 @@ class ExperimentMetrics {
       _measurements.add(microseconds);
       _logger.info(
         '[$experimentName] Async measurement #${_iterationCount - warmUpIterations}: '
-        '${microseconds}μs (${(microseconds / 1000).toStringAsFixed(2)}ms)',
+        '$microsecondsμs (${(microseconds / 1000).toStringAsFixed(2)}ms)',
       );
     } else {
       _logger.fine(
         '[$experimentName] Warm-up iteration $_iterationCount: '
-        '${microseconds}μs (${(microseconds / 1000).toStringAsFixed(2)}ms)',
+        '$microsecondsμs (${(microseconds / 1000).toStringAsFixed(2)}ms)',
       );
     }
 
@@ -161,7 +161,7 @@ class ExperimentMetrics {
     final microseconds = sw.elapsedMicroseconds;
     _logger.fine(
       '[$experimentName] Phase "$phaseName": '
-      '${microseconds}μs (${(microseconds / 1000).toStringAsFixed(2)}ms)',
+      '$microsecondsμs (${(microseconds / 1000).toStringAsFixed(2)}ms)',
     );
     return (result, microseconds);
   }
@@ -183,7 +183,7 @@ class ExperimentMetrics {
     final microseconds = sw.elapsedMicroseconds;
     _logger.fine(
       '[$experimentName] Phase "$phaseName": '
-      '${microseconds}μs (${(microseconds / 1000).toStringAsFixed(2)}ms)',
+      '$microsecondsμs (${(microseconds / 1000).toStringAsFixed(2)}ms)',
     );
     return (result, microseconds);
   }

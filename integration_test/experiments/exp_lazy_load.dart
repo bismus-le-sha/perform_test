@@ -15,6 +15,7 @@
 ///        --target=integration_test/experiments/exp_lazy_load.dart \
 ///        --profile --no-dds
 /// ═══════════════════════════════════════════════════════════════════════════
+library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -69,7 +70,7 @@ void main() {
         '╠═══════════════════════════════════════════════════════════╣',
       );
       debugPrint(
-        '║  Iterations: ${kWarmupIterations} warmup + ${kDataIterations} data per state        ║',
+        '║  Iterations: $kWarmupIterations warmup + $kDataIterations data per state        ║',
       );
       debugPrint(
         '║  Toggle states: [false, true]                              ║',

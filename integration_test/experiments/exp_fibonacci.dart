@@ -18,6 +18,7 @@
 ///        --target=integration_test/experiments/exp_fibonacci.dart \
 ///        --profile --no-dds
 /// ═══════════════════════════════════════════════════════════════════════════
+library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -66,7 +67,7 @@ void main() {
         '╠═══════════════════════════════════════════════════════════╣',
       );
       debugPrint(
-        '║  Iterations: ${kWarmupIterations} warmup + ${kDataIterations} data per state        ║',
+        '║  Iterations: $kWarmupIterations warmup + $kDataIterations data per state        ║',
       );
       debugPrint(
         '║  Toggle states: [false, true]                              ║',
@@ -316,6 +317,15 @@ void main() {
             metricName: 'jank_percent',
             metricValue: jankPercent,
             unit: 'percent',
+            iteration: i,
+            isWarmup: isWarmup,
+          );
+
+          csvWriter.writeRow(
+            toggleState: toggleState,
+            metricName: 'total_jank',
+            metricValue: totalJank,
+            unit: 'milliseconds',
             iteration: i,
             isWarmup: isWarmup,
           );

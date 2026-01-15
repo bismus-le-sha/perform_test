@@ -13,6 +13,7 @@
 /// RETRIEVAL: adb pull /sdcard/Download/flutter_perf_raw_*.csv ./raw_data/
 ///
 /// ═══════════════════════════════════════════════════════════════════════════
+library;
 
 import 'dart:io';
 import 'dart:ui';
@@ -34,19 +35,19 @@ import 'test_config.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// Number of data iterations per toggle state (excluding warmup)
-const int DATA_ITERATIONS = 10;
+const int dataIterations = 10;
 
 /// Number of warmup iterations (marked in data, analyzed separately)
-const int WARMUP_ITERATIONS = 2;
+const int warmupIterations = 2;
 
 /// Cooldown between iterations to stabilize device state
-const Duration ITERATION_COOLDOWN = Duration(seconds: 2);
+const Duration iterationCooldown = Duration(seconds: 2);
 
 /// Scroll duration for scroll-based scenarios
-const Duration SCROLL_DURATION = Duration(milliseconds: 1500);
+const Duration scrollDuration = Duration(milliseconds: 1500);
 
 /// Animation observation duration
-const Duration ANIMATION_DURATION = Duration(seconds: 2);
+const Duration animationDuration = Duration(seconds: 2);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // CSV DATA WRITER - Direct file output
@@ -403,8 +404,8 @@ void main() {
         final networkJsonDatasource = di.sl<NetworkJsonDatasource>();
         networkJsonDatasource.clearCache();
 
-        for (int i = 0; i < WARMUP_ITERATIONS + DATA_ITERATIONS; i++) {
-          final isWarmup = i < WARMUP_ITERATIONS;
+        for (int i = 0; i < warmupIterations + dataIterations; i++) {
+          final isWarmup = i < warmupIterations;
           final label = isWarmup ? 'WARMUP' : 'DATA';
 
           // Configure toggle BEFORE creating app
@@ -501,7 +502,7 @@ void main() {
 
           // Reset app for next iteration
           await tester.pumpWidget(Container());
-          await tester.pump(ITERATION_COOLDOWN);
+          await tester.pump(iterationCooldown);
         }
       }
     });
@@ -520,8 +521,8 @@ void main() {
       for (final toggleState in [false, true]) {
         debugPrint('[$scenario] toggle_state=$toggleState');
 
-        for (int i = 0; i < WARMUP_ITERATIONS + DATA_ITERATIONS; i++) {
-          final isWarmup = i < WARMUP_ITERATIONS;
+        for (int i = 0; i < warmupIterations + dataIterations; i++) {
+          final isWarmup = i < warmupIterations;
           final label = isWarmup ? 'WARMUP' : 'DATA';
 
           appConfig.set(FeatureToggle.correctDataUpdate, toggleState);
@@ -565,7 +566,7 @@ void main() {
           debugPrint('  [$label $i] scroll frames=${timings.length}');
 
           await tester.pumpWidget(Container());
-          await tester.pump(ITERATION_COOLDOWN);
+          await tester.pump(iterationCooldown);
         }
       }
     });
@@ -582,8 +583,8 @@ void main() {
       for (final toggleState in [false, true]) {
         debugPrint('[$scenario] toggle_state=$toggleState');
 
-        for (int i = 0; i < WARMUP_ITERATIONS + DATA_ITERATIONS; i++) {
-          final isWarmup = i < WARMUP_ITERATIONS;
+        for (int i = 0; i < warmupIterations + dataIterations; i++) {
+          final isWarmup = i < warmupIterations;
           final label = isWarmup ? 'WARMUP' : 'DATA';
 
           appConfig.set(FeatureToggle.lazyLoad, toggleState);
@@ -628,7 +629,7 @@ void main() {
           );
 
           await tester.pumpWidget(Container());
-          await tester.pump(ITERATION_COOLDOWN);
+          await tester.pump(iterationCooldown);
         }
       }
     });
@@ -646,8 +647,8 @@ void main() {
       for (final toggleState in [false, true]) {
         debugPrint('[$scenario] toggle_state=$toggleState');
 
-        for (int i = 0; i < WARMUP_ITERATIONS + DATA_ITERATIONS; i++) {
-          final isWarmup = i < WARMUP_ITERATIONS;
+        for (int i = 0; i < warmupIterations + dataIterations; i++) {
+          final isWarmup = i < warmupIterations;
           final label = isWarmup ? 'WARMUP' : 'DATA';
 
           appConfig.set(FeatureToggle.minimizeExpensiveRendering, toggleState);
@@ -660,7 +661,7 @@ void main() {
 
           // Pump frames for animation duration
           final animStart = DateTime.now();
-          while (DateTime.now().difference(animStart) < ANIMATION_DURATION) {
+          while (DateTime.now().difference(animStart) < animationDuration) {
             await tester.pump(const Duration(milliseconds: 16));
           }
 
@@ -682,7 +683,7 @@ void main() {
           debugPrint('  [$label $i] animation frames=${timings.length}');
 
           await tester.pumpWidget(Container());
-          await tester.pump(ITERATION_COOLDOWN);
+          await tester.pump(iterationCooldown);
         }
       }
     });

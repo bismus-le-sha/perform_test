@@ -10,6 +10,7 @@
 /// FILE NAMING: flutter_perf_{toggle}_{timestamp}.csv
 /// RETRIEVAL: adb pull /sdcard/Download/flutter_perf_*.csv ./raw_data/
 /// ═══════════════════════════════════════════════════════════════════════════
+library;
 
 import 'dart:io';
 import 'dart:ui';

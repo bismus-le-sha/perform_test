@@ -3,6 +3,8 @@
 /// Central registry of all experiment scenarios.
 library;
 
+import 'package:flutter/foundation.dart';
+
 import 'scn_fibonacci.dart';
 import 'scn_json_parsing.dart';
 import 'scn_widget_rebuild.dart';
@@ -33,20 +35,20 @@ ExperimentScenario? getScenarioByToggle(String toggleName) {
 
 /// Print all scenarios summary.
 void printScenariosSummary() {
-  print('=' * 60);
-  print('AVAILABLE EXPERIMENT SCENARIOS');
-  print('=' * 60);
+  debugPrint('=' * 60);
+  debugPrint('AVAILABLE EXPERIMENT SCENARIOS');
+  debugPrint('=' * 60);
 
   for (final scenario in allScenarios) {
-    print('');
-    print('${scenario.id}: ${scenario.name}');
-    print('  Toggle: ${scenario.toggleName}');
-    print('  Primary metrics:');
+    debugPrint('');
+    debugPrint('${scenario.id}: ${scenario.name}');
+    debugPrint('  Toggle: ${scenario.toggleName}');
+    debugPrint('  Primary metrics:');
     for (final metric in scenario.dependentVariables.take(2)) {
-      print('    - ${metric.name} (${metric.unit.name})');
+      debugPrint('    - ${metric.name} (${metric.unit.name})');
     }
   }
 
-  print('');
-  print('=' * 60);
+  debugPrint('');
+  debugPrint('=' * 60);
 }

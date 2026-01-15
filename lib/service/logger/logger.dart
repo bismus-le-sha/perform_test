@@ -13,6 +13,7 @@ void configureGlobalLogging({Level level = Level.INFO}) {
     if (record.error != null) buffer.write(' | error: ${record.error}');
     if (record.stackTrace != null) buffer.write('\n${record.stackTrace}');
     // Можно заменить на любой другой вывод (например, отправка на сервер)
+    // ignore: avoid_print
     print(buffer.toString());
   });
 }

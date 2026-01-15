@@ -20,6 +20,7 @@
 ///        --target=integration_test/experiments/exp_shimmer.dart \
 ///        --profile --no-dds
 /// ═══════════════════════════════════════════════════════════════════════════
+library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -122,7 +123,7 @@ void main() {
         '╠═══════════════════════════════════════════════════════════════════╣',
       );
       debugPrint(
-        '║  Iterations: ${kWarmupIterations} warmup + ${kDataIterations} data per condition           ║',
+        '║  Iterations: $kWarmupIterations warmup + $kDataIterations data per condition           ║',
       );
       debugPrint(
         '║  Total iterations: ${(kWarmupIterations + kDataIterations) * shimmerConditions.length}                                         ║',

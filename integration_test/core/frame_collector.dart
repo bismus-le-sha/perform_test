@@ -7,8 +7,7 @@
 /// - Provides build, raster, and total times
 /// - No manual DateTime.now() measurements (inaccurate)
 /// ═══════════════════════════════════════════════════════════════════════════
-
-import 'dart:ui';
+library;
 
 import 'package:flutter/scheduler.dart';
 
